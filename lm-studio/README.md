@@ -170,11 +170,11 @@ lms unload deepseek/deepseek-r1-0528-qwen3-8b
 | `--identifier` | Custom name for API references. |
 | `-y, --yes` | Non-interactive. Required for scripts. |
 
-### Explicit loads bypass auto-evict
+### Models accumulate — they don't swap
 
-LM Studio's just-in-time loading evicts the current model when a request arrives for a different one, which is what keeps memory under control during normal use.
+Just-in-time loading is often assumed to keep exactly one model resident, evicting the previous one whenever a request arrives for a different model. That is not what happens.
 
-**A deliberate `lms load` does not follow that rule.** Loading a second model explicitly while one is already resident leaves both in memory:
+**Loading a second model leaves the first in memory.** This holds whether the second load is explicit or triggered by an incoming API request — a UI switching models mid-conversation stacks a second model on top of the first:
 
 ```
 IDENTIFIER                            SIZE       CONTEXT
@@ -182,7 +182,11 @@ deepseek/deepseek-r1-0528-qwen3-8b    4.62 GB    32768
 mistralai/ministral-3-3b              2.99 GB    65536
 ```
 
-On a machine with an ~11.8 GiB accelerator budget, two mid-sized models will fit; a third generally won't, and the failure arrives as degraded performance before it arrives as an error. Check `lms ps` after loading, and use `--ttl` so forgotten models unload themselves.
+![LM Studio Developer view with two models loaded simultaneously, each carrying its own idle TTL](img/two-models-loaded.png)
+
+Measured on an ~11.8 GiB accelerator budget: an 8B model at 32K context plus a 3B at 64K sat at 7.61 GB together without complaint. A third would be tight, and the failure arrives as degraded performance before it arrives as an error.
+
+What actually reclaims memory is the idle timeout, not eviction. Each loaded model carries its own TTL and unloads once it goes unused for that long. Set `--ttl` deliberately rather than relying on a swap that doesn't happen, and check `lms ps` when memory feels tight.
 
 To reset:
 
