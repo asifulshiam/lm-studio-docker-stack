@@ -1,0 +1,30 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: ${OPEN_WEBUI_NAME:-open-webui}
+
+    ports:
+      # Host port is overridable; 8080 is the container's internal port and doesn't change.
+      - "${OPEN_WEBUI_PORT:-3000}:8080"
+
+    volumes:
+      # Chats, settings, uploaded documents, and RAG vectors live here.
+      # Bind mount rather than a named volume so the data is visible on the host
+      # and included in whatever backs up your home directory.
+      - "${OPEN_WEBUI_DATA:-./open-webui-data}:/app/backend/data"
+
+    extra_hosts:
+      # Inside a container, "localhost" is the container itself. This maps
+      # host.docker.internal to the machine running Docker, which is how
+      # requests reach LM Studio. Without it, every model call fails.
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      # LM Studio's OpenAI-compatible endpoint. Note the /v1 suffix.
+      - OPENAI_API_BASE_URL=${LM_STUDIO_URL:-http://host.docker.internal:1234/v1}
+      # LM Studio ignores the key, but the client requires a non-empty value.
+      - OPENAI_API_KEY=${LM_STUDIO_API_KEY:-lm-studio}
+      # No Ollama in this stack. Left empty so the UI doesn't poll a dead endpoint.
+      - OLLAMA_BASE_URL=
+
+    restart: unless-stopped
