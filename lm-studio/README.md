@@ -83,6 +83,10 @@ Four generative models plus one embedding model. Model keys are the exact string
 | `zai-org/glm-4.6v-flash` | 9B | MLX 4-bit | 7.09 GB | 64K |
 | `text-embedding-nomic-embed-text-v1.5` | — | GGUF | 84 MB | — |
 
+![LM Studio model library showing the four generative models on disk](img/models-library.png)
+
+The sidebar's separate "Text Embedding" category is where the bundled embedding model appears — it isn't counted among the four local downloads.
+
 List them yourself:
 
 ```bash
