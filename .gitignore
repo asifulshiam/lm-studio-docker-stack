@@ -1,0 +1,44 @@
+# ─── Container data directories ────────────────────────────────────────────
+# Chat history, uploaded documents, RAG vectors, character cards, personas.
+# These are yours, they get large, and they are not reproducible artifacts.
+*-data/
+open-webui-data/
+sillytavern-data/
+
+# ─── Secrets and local configuration ───────────────────────────────────────
+# Vane's config.toml carries API base URLs and can carry provider keys.
+# The repo ships a documented example instead; the live file never gets committed.
+.env
+.env.*
+!.env.example
+config.toml
+!config.example.toml
+*.key
+*.pem
+secrets.yml
+
+# ─── SearXNG runtime ───────────────────────────────────────────────────────
+# settings.yml is generated on first run and contains a per-instance secret.
+searxng/settings.yml
+searxng/uwsgi.ini
+
+# ─── Model weights ─────────────────────────────────────────────────────────
+# Models are downloaded through LM Studio, never vendored into a git repo.
+*.gguf
+*.safetensors
+*.bin
+
+# ─── Benchmark scratch output ──────────────────────────────────────────────
+# Raw runs land here; curated results are committed to benchmarks/ by hand.
+benchmarks/raw/
+*.log
+
+# ─── macOS ─────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+._*
+
+# ─── Editors ───────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
