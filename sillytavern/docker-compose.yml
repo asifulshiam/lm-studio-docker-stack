@@ -1,0 +1,31 @@
+services:
+  sillytavern:
+    image: ghcr.io/sillytavern/sillytavern:latest
+    container_name: ${SILLYTAVERN_NAME:-sillytavern}
+
+    ports:
+      # Container listens on 8000 internally; only the host port is overridable.
+      - "${SILLYTAVERN_PORT:-8000}:8000"
+
+    volumes:
+      # Characters, personas, chat history, presets, settings — all in one place.
+      - "${SILLYTAVERN_DATA:-./sillytavern-data}:/home/node/app/data"
+
+    extra_hosts:
+      # Required for the API connection to reach the model server on the host.
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      # SillyTavern's default whitelist only permits 127.0.0.1 and ::1. Requests
+      # from outside a container never arrive from those addresses, so a default
+      # install returns 403 to everything. See the README before changing these.
+      - SILLYTAVERN_LISTEN=true
+      - SILLYTAVERN_WHITELISTMODE=false
+
+      # The app refuses to start with listen enabled and no authentication.
+      # Credentials have no defaults on purpose — set them in a .env file.
+      - SILLYTAVERN_BASICAUTHMODE=true
+      - SILLYTAVERN_BASICAUTHUSER_USERNAME=${SILLYTAVERN_USER:?set SILLYTAVERN_USER in .env}
+      - SILLYTAVERN_BASICAUTHUSER_PASSWORD=${SILLYTAVERN_PASSWORD:?set SILLYTAVERN_PASSWORD in .env}
+
+    restart: unless-stopped
