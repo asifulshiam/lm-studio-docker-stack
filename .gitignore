@@ -6,21 +6,15 @@ open-webui-data/
 sillytavern-data/
 
 # ─── Secrets and local configuration ───────────────────────────────────────
-# Vane's config.toml carries API base URLs and can carry provider keys.
-# The repo ships a documented example instead; the live file never gets committed.
+# SillyTavern requires credentials to start; sillytavern/.env.example documents
+# the variable names. Live .env files never get committed.
 .env
 .env.*
 !.env.example
 config.toml
-!config.example.toml
 *.key
 *.pem
 secrets.yml
-
-# ─── SearXNG runtime ───────────────────────────────────────────────────────
-# settings.yml is generated on first run and contains a per-instance secret.
-searxng/settings.yml
-searxng/uwsgi.ini
 
 # ─── Model weights ─────────────────────────────────────────────────────────
 # Models are downloaded through LM Studio, never vendored into a git repo.
@@ -30,7 +24,11 @@ searxng/uwsgi.ini
 
 # ─── Benchmark scratch output ──────────────────────────────────────────────
 # Raw runs land here; curated results are committed to benchmarks/ by hand.
+# The harness writes results.json beside itself unless told otherwise, so the
+# filenames it produces are ignored wherever they land.
 benchmarks/raw/
+results*.json
+run-*.md
 *.log
 
 # ─── macOS ─────────────────────────────────────────────────────────────────
