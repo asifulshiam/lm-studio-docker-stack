@@ -89,13 +89,17 @@ Two details worth knowing.
 
 **The API key is labelled Optional but isn't.** Leave it blank and the field shows a red ✗ reading "Missing key" — the client won't send requests without one. The value is ignored; its presence isn't.
 
-**`host.docker.internal` is not automatic.** The Compose file declares `extra_hosts` to make it resolve. Without that line the container runs perfectly and the connection fails, which is the most common failure in this stack — see [`../troubleshooting.md`](../troubleshooting.md).
+**Use `host.docker.internal`, not `localhost`.** Inside a container `localhost` is the container, so an endpoint pointing there fails while everything looks correctly configured. Docker Desktop supplies `host.docker.internal` on macOS automatically; the Compose file also declares it via `host-gateway` so the file works unchanged on Linux, where it isn't automatic. See [`../troubleshooting.md`](../troubleshooting.md).
 
 ### Reasoning models need a bigger response budget
 
 The default response length is **300 tokens**, and that is not enough for a reasoning model. The thinking phase consumes the same allowance as the answer, so the budget runs out mid-thought and **no answer is ever produced**. The UI shows a "Thought for N seconds" block and nothing beneath it, which looks like a broken connection rather than a truncated response.
 
-Raise the response length to **2000 or more** in the sliders panel (first toolbar icon). Verified directly against the API — the same request returns an empty `content` at 300 tokens and a complete answer at 2000:
+Raise the response length to **2,500 or more** in the sliders panel (first toolbar icon). Measured against the API, a reasoning model needed 2,150 tokens for a multi-step word problem and over 4,000 for an open-ended question — so 2,000 clears some prompts and not others. Use 4,000 if the answers are involved; see [`../benchmarks/`](../benchmarks/) for the measurements.
+
+Note that this applies to more models than the obvious one. A multimodal model in this stack also reasons before answering, spending 77% of its budget doing so, and fails the same way under a tight limit.
+
+The behaviour is verifiable directly — the same request returns an empty `content` at 300 tokens and a complete answer at a realistic budget:
 
 ```bash
 curl -s http://localhost:1234/v1/chat/completions \
