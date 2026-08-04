@@ -94,7 +94,20 @@ lms ls --llm
 lms ls --embedding
 ```
 
-**The embedding model is bundled.** It ships with LM Studio under `~/.lmstudio/.internal/bundled-models/` rather than the user models directory, so it never appears in the download browser and doesn't need fetching. It's what powers document retrieval in Open WebUI and search in Vane — which is why RAG works in those UIs without configuring an embedding model first.
+**The embedding model is bundled.** It ships with LM Studio under `~/.lmstudio/.internal/bundled-models/` rather than the user models directory, so it never appears in the download browser and doesn't need fetching.
+
+Worth noting that neither UI uses it by default — both Open WebUI and Vane bundle their own embedding model and run that instead. Retrieval works out of the box in both, just not through this model unless you point them at it.
+
+<details>
+<summary><b>Adding models from Hugging Face</b></summary>
+
+LM Studio's model browser searches Hugging Face directly and downloads into `~/.lmstudio/models/`, so the usual workflow needs no separate tooling. Search by model name, and the browser shows available quantisations with an indication of which will fit your machine.
+
+Two things worth knowing when choosing. Quantisation level is the main lever on both size and quality — Q4_K_M is the common default and what most models in this stack use. And on Apple Silicon, MLX builds where available are more memory-efficient than GGUF at comparable quality, though they're published for fewer models.
+
+A model downloaded this way is loadable by `lms load` immediately, under the key shown in `lms ls`.
+
+</details>
 
 ---
 
@@ -102,7 +115,9 @@ lms ls --embedding
 
 This is the single most useful thing to understand before choosing models for a machine with limited memory.
 
-Ministral 3B occupies **2.99 GB on disk** and roughly **8.5 GB in memory** when run at 64K context. DeepSeek 8B occupies **4.62 GB on disk** and loads in about **4.3 GB**. The smaller model uses more memory than the larger one.
+Ministral 3B occupies **2.99 GB on disk**, and LM Studio estimates **7.05 GiB** for it at 64K context. The same model at 8K estimates **3.40 GiB** — the file hasn't changed, only the context window.
+
+That's the lever. Context allocates memory whether or not you use it, and cutting it frees more than switching to a smaller model usually does.
 
 Two things drive the gap:
 
@@ -139,9 +154,9 @@ lms load deepseek/deepseek-r1-0528-qwen3-8b --estimate-only
 
 This calculates the resource requirement without loading anything. Two caveats worth knowing:
 
-**It reports a ceiling, not a prediction.** In testing it estimated 6.02 GiB for a model that loaded in 4.30 GiB — around 40% conservative. That's the right direction for a safety check to err, but don't read it as a measurement.
+**It reports a ceiling, not a prediction.** The estimate sits well above the weights it's estimating for — 6.02 GiB against 4.62 GB on disk for the 8B model. That's the right direction for a safety check to err, but it isn't a measurement of what the process holds.
 
-**It reports its own confidence.** A `LOW` confidence estimate means exactly that. Treat it as a rough upper bound rather than a number to plan against.
+**It reports its own confidence, and MLX estimates deserve scepticism.** A `LOW` rating means what it says. For MLX-format models the figure also doesn't change with the context length you pass, which means the KV cache isn't being modelled — the same model estimates identically at 8K and 32K. GGUF estimates do scale with context.
 
 Find out what your accelerator budget actually is:
 
