@@ -14,11 +14,12 @@ services:
       - "${OPEN_WEBUI_DATA:-./open-webui-data}:/app/backend/data"
 
     extra_hosts:
-      # Inside a container, "localhost" is the container itself. This maps
-      # host.docker.internal to the machine running Docker, which is how
-      # requests reach LM Studio. Without it, every model call fails.
+      # Inside a container, "localhost" is the container itself; requests reach
+      # LM Studio through host.docker.internal instead. Docker Desktop supplies
+      # that name on macOS and Windows. host-gateway is the Linux mechanism,
+      # declared here so this file works unchanged on either platform.
       - "host.docker.internal:host-gateway"
-
+      
     environment:
       # LM Studio's OpenAI-compatible endpoint. Note the /v1 suffix.
       - OPENAI_API_BASE_URL=${LM_STUDIO_URL:-http://host.docker.internal:1234/v1}

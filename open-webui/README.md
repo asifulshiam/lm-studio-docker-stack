@@ -49,16 +49,16 @@ Every model appears in the picker on first launch, without visiting a settings p
 <details>
 <summary><b>Why <code>host.docker.internal</code> and not <code>localhost</code></b></summary>
 
-Inside a container, `localhost` means the container itself. A request to `http://localhost:1234` from inside Open WebUI looks for a model server running *in that container*, finds nothing, and fails.
+Inside a container, `localhost` means the container itself. A request to `http://localhost:1234` from inside Open WebUI looks for a model server running *in that container*, finds nothing, and fails — the container starts perfectly and the model list is silently empty. Pointing an endpoint at `localhost` is the most common configuration error in this stack.
 
-`host.docker.internal` resolves to the machine running Docker. It isn't automatic — the Compose file declares it:
+`host.docker.internal` resolves to the machine running Docker. Docker Desktop provides it on macOS and Windows without any configuration. The Compose file declares it anyway:
 
 ```yaml
 extra_hosts:
   - "host.docker.internal:host-gateway"
 ```
 
-Without that line the container starts perfectly and the model list is silently empty, which is the most common failure in this entire stack. If a UI can't see any models, check this before anything else.
+`host-gateway` is the Linux mechanism, where the name isn't supplied automatically. Declaring it costs nothing on macOS and means this file works unchanged on Linux.
 
 </details>
 
@@ -109,6 +109,15 @@ Worth knowing, because it surprises people: on first boot the container download
 That default is a reasonable one — MiniLM is small, fast, runs inside the container, and doesn't compete with your chat model for memory. But it means retrieval quality is independent of which model you have loaded, which isn't obvious.
 
 You can point embeddings at LM Studio instead, through the admin document settings, using the same OpenAI-compatible endpoint the chat models use and `text-embedding-nomic-embed-text-v1.5` as the model. Nomic is the larger and generally stronger embedding model; MiniLM is the lighter one. Worth trying both against your own documents rather than taking either as given — retrieval quality is corpus-dependent enough that the comparison is quick and the answer isn't universal.
+
+<details>
+<summary><b>On standalone vector databases</b></summary>
+
+Open WebUI ships its own vector store and manages it for you — embedding, indexing, and retrieval all happen inside the container with no separate service to run. For a personal document collection that's the right amount of machinery.
+
+Standalone vector databases like Chroma or Qdrant solve problems this doesn't have: sharing an index across applications, collections large enough to need real indexing strategies, or querying from your own code. They're out of scope here, and reaching for one before you've hit a limit of the built-in store adds a service to maintain for no gain.
+
+</details>
 
 ### Chunking and retrieval depth
 
