@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "set_name": "lm-studio-docker-stack v1",
+  "notes": [
+    "Five prompts, one per category, chosen to differentiate model strengths without taking long to run.",
+    "No system prompt is sent. Results reflect each model's default behaviour, not a harness-imposed persona.",
+    "All prompts are text-only. A multimodal model is measured on its text path here; its vision path is not benchmarked.",
+    "max_tokens is a ceiling, not a target. Reasoning models spend a large share of their budget before the answer starts."
+  ],
+  "prompts": [
+    {
+      "id": "reason-01",
+      "category": "reasoning",
+      "max_tokens": 768,
+      "system": null,
+      "prompt": "A shop sells notebooks in packs of 4 and pens in packs of 6. A customer buys the same number of packs of each and ends up with 12 more pens than notebooks. How many packs of each did they buy, and how many pens is that in total? Show your reasoning, then state the final answer on its own line."
+    },
+    {
+      "id": "code-01",
+      "category": "code",
+      "max_tokens": 512,
+      "system": null,
+      "prompt": "Write a Python function `merge_ranges(ranges)` that takes a list of (start, end) integer tuples, merges any that overlap or touch, and returns the merged list sorted by start. Handle the empty-input case explicitly. Include three assert statements that exercise it. Return only the code, no explanation."
+    },
+    {
+      "id": "summ-01",
+      "category": "summarization",
+      "max_tokens": 256,
+      "system": null,
+      "prompt": "Summarise the following passage in exactly three bullet points.\n\nA journaling filesystem records its intended changes in a dedicated log before applying them to the main structures on disk. If power is lost partway through a write, the system consults that log at mount time and either replays the entries that were fully recorded or discards the ones that were not. This turns a potentially arbitrary amount of post-crash repair work into a bounded operation, because the log has a fixed size and the recovery pass only has to read it once. The tradeoff is write amplification: metadata is written twice, once to the journal and once to its final location. Some filesystems narrow this cost by journaling only metadata and not file contents, which keeps the structures consistent while accepting that the tail of a file being written during a crash may be lost."
+    },
+    {
+      "id": "chat-01",
+      "category": "chat",
+      "max_tokens": 256,
+      "system": null,
+      "prompt": "I've got a laptop with 16 GB of RAM and I keep running out of memory when I have a browser, an editor, and a container runtime open at once. Talk me through how you'd figure out where the memory is actually going before I start closing things at random."
+    },
+    {
+      "id": "multi-01",
+      "category": "multilingual",
+      "max_tokens": 256,
+      "system": null,
+      "prompt": "Translate the following sentence into French, German, and Japanese, then note in one line which of the three was hardest to render naturally and why: \"The server refused the connection because the certificate had already expired.\""
+    }
+  ]
+}
