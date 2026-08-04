@@ -17,8 +17,10 @@ flowchart LR
     subgraph docker["Docker Desktop"]
         OWUI["<b>Open WebUI</b><br/>:3000<br/>general chat + RAG"]
         ST["<b>SillyTavern</b><br/>:8000<br/>character-driven chat"]
-        VANE["<b>Vane</b><br/>:3001<br/>search-augmented chat"]
-        SEARX["<b>SearXNG</b><br/>:4000<br/>meta-search backend"]
+        subgraph vanec["Vane container — :3001"]
+            VANE["<b>Vane</b><br/>search-augmented chat"]
+            SEARX["<b>SearXNG</b><br/>bundled meta-search<br/>internal :8080"]
+        end
     end
 
     OWUI -->|host.docker.internal:1234| LMS
@@ -27,7 +29,9 @@ flowchart LR
     VANE --> SEARX
 ```
 
-One model is loaded at a time. All three UIs point at the same API, so switching the loaded model in LM Studio changes what every interface serves.
+All three UIs point at the same API, so switching the loaded model in LM Studio changes what every interface serves. Models do not swap automatically — loading a second one leaves the first resident, and memory is reclaimed by an idle timeout rather than by eviction. See [`lm-studio/`](lm-studio/).
+
+SearXNG runs *inside* the Vane container rather than beside it. Vane's image starts its own instance on an internal port and points at it by default, so the search backend needs no separate service.
 
 <details>
 <summary><b>Why a separate model server instead of one all-in-one app?</b></summary>
@@ -56,8 +60,7 @@ Canonical version matrix for this repo. Section READMEs point back here rather t
 | Docker Compose | v2.39.4-desktop.1 |
 | Open WebUI | `ghcr.io/open-webui/open-webui:main` |
 | SillyTavern | `ghcr.io/sillytavern/sillytavern:latest` |
-| Vane | `itzcrazykns1337/vane:latest` |
-| SearXNG | `searxng/searxng:latest` |
+| Vane (SearXNG bundled) | `itzcrazykns1337/vane:latest` |
 
 The container tags are moving targets — `:main` and `:latest` mean "whatever was current when the image was pulled," not a fixed release. Pin a digest if you need reproducibility across machines.
 
@@ -110,7 +113,7 @@ OPEN_WEBUI_PORT=3010 docker compose up -d
 | [`lm-studio/`](lm-studio/) | Install, JIT model management, API server configuration |
 | [`open-webui/`](open-webui/) | General-purpose chat with RAG — the default choice |
 | [`sillytavern/`](sillytavern/) | Character cards, personas, long-form roleplay |
-| [`perplexica/`](perplexica/) | Search-augmented answers via Vane + a local SearXNG |
+| [`perplexica/`](perplexica/) | Search-augmented answers, and where local models struggle |
 | [`benchmarks/`](benchmarks/) | Measured tokens/sec, and how to reproduce the numbers |
 | [`model-selection-guide.md`](model-selection-guide.md) | Which model for which job, and why |
 | [`troubleshooting.md`](troubleshooting.md) | Networking, ports, load failures, cold-start latency |
