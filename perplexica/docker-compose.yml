@@ -12,7 +12,9 @@ services:
       - "${VANE_DATA:-vane-data}:/home/vane/data"
 
     extra_hosts:
-      # Required for the model connection to reach the host.
+      # The connection points at host.docker.internal, not localhost. Docker
+      # Desktop supplies that name; host-gateway is the Linux equivalent,
+      # declared here so this file works unchanged on either platform.
       - "host.docker.internal:host-gateway"
 
     restart: unless-stopped

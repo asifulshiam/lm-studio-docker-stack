@@ -115,8 +115,9 @@ For contrast, [Open WebUI's document retrieval](../open-webui/) works well on th
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `VANE_PORT` | `3001` | Host port |
-| `VANE_DATA` | `vane-data` | Named volume for settings and history |
+| `VANE_DATA` | `vane-data` | Settings and history — a volume name, or a host path |
 | `VANE_NAME` | `vane` | Container name |
+| `VANE_VOLUME` | `vane-data` | Name of the created volume. Leave alone unless running two instances |
 
 Vane stores state in a **named volume** rather than a bind mount, unlike the other services here. Settings survive `docker compose down` and container removal, but they aren't visible as files in your home directory, so ordinary file backups won't capture them.
 
