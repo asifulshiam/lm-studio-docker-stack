@@ -85,7 +85,7 @@ tracking here.
 
 ## Model order
 
-1. `mistralai/ministral-3-3b` — pairs against its 7 pipeline runs
+1. `mistralai/ministral-3-3b` — pairs against its nine pipeline runs
 2. `google/gemma-2-9b` — **8K, excluded from the pipeline arm; runs here**
 3. `deepseek/deepseek-r1-0528-qwen3-8b` — cited sources then answered from training in the
    original Vane test
