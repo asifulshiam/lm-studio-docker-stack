@@ -31,7 +31,7 @@ flowchart LR
     OWUI -->|host.docker.internal:4000| SXNG
 ```
 
-All three UIs point at the same API, so switching the loaded model in LM Studio changes what every interface serves. Models do not swap automatically — loading a second one leaves the first resident, and memory is reclaimed by an idle timeout rather than by eviction. See [`lm-studio/`](lm-studio/).
+All three chat UIs point at the same API, so switching the loaded model in LM Studio changes what every interface serves. Models do not swap automatically — loading a second one leaves the first resident, and memory is reclaimed by an idle timeout rather than by eviction. See [`lm-studio/`](lm-studio/).
 
 Two SearXNG instances appear, and they are deliberately separate. Vane's runs *inside* its container — the image starts its own on an internal port and points at it by default, so Vane's search backend needs no separate service. The standalone one on `:4000` exists for Open WebUI's built-in web search, which has no bundled backend of its own; it's optional, and [`web-search/`](web-search/) covers when it earns its place over the zero-config provider.
 
