@@ -1,0 +1,20 @@
+# Overlay on SearXNG's shipped defaults — not a full settings dump.
+# use_default_settings inherits everything else, so this file stays valid
+# across image updates instead of drifting against a vendored copy.
+
+use_default_settings: true
+
+general:
+  instance_name: 'searxng'
+
+search:
+  # Open WebUI reads the JSON API. Removing 'json' here makes it return
+  # nothing while the container still looks healthy.
+  formats:
+    - html
+    - json
+
+server:
+  # Generate your own:  openssl rand -hex 32
+  # Overwritten at startup if SEARXNG_SECRET is set in the environment.
+  secret_key: 'CHANGE_ME_BEFORE_STARTING'

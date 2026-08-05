@@ -1,0 +1,25 @@
+# SearXNG — reproducible search provider for Open WebUI's built-in web search.
+#
+# This is NOT the SearXNG that Vane uses. Vane starts its own instance inside its
+# own container and never queries an external one — see ../perplexica/README.md.
+# Open WebUI has no bundled search backend, so it needs one it can reach over HTTP.
+#
+# JSON output is disabled in the stock image and Open WebUI requires it. The
+# settings.yml mounted here enables it. Without that file the container starts
+# cleanly and returns nothing.
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: ${SEARXNG_NAME:-searxng}
+    ports:
+      - "${SEARXNG_PORT:-4000}:8080"
+    volumes:
+      # Overlay config: enables JSON output. Read-write because SearXNG
+      # rewrites secret_key on start when SEARXNG_SECRET is set.
+      - ./searxng:/etc/searxng:rw
+    environment:
+      # Optional. If set, it overwrites secret_key in settings.yml at startup,
+      # which lets you keep the committed file free of a real secret.
+      - SEARXNG_SECRET=${SEARXNG_SECRET:-}
+    restart: unless-stopped
