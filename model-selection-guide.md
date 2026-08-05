@@ -34,7 +34,9 @@ The fastest by a wide margin, at 50.7 tok/s, and the smallest at 2.99 GB of weig
 
 Reach for it first, including for most visual tasks. When it's adequate, nothing else here is worth the wait, and it leaves the most memory free for everything else on the machine.
 
-**Its limit is capability, not speed.** In search-augmented chat it never triggered a search at all — it answered from parameters and produced text that read like an answer, which is the worst failure mode available because nothing signals that retrieval didn't happen. See [`perplexica/`](perplexica/) for the full comparison. Treat it as a fast conversational model rather than one to hand a multi-step task.
+**It reads retrieved text as well as anything here.** Given web results directly it extracted a four-set score with both tiebreak margins, identically across repeated runs, past a decoy answer from a different year — matching the 9B and both reasoning models. See [`web-search/`](web-search/).
+
+Where it struggles is driving a multi-step pipeline itself. In Vane it never triggered a search at all, answering from parameters and producing text that read like an answer — the worst failure mode available, because nothing signals that retrieval didn't happen ([`perplexica/`](perplexica/)). The same split shows up in Open WebUI, where it writes its own search queries: the queries were often poor, and the reading of what they returned was reliable.
 
 ### DeepSeek R1 8B — reasoning, with a caveat about budget
 
@@ -48,7 +50,9 @@ Reasons before answering, and the one to use when a problem has steps. **Two mod
 | Short summarisation | 395 |
 | Open-ended question | over 4,095 |
 
-Set the response limit to **2,500 minimum, 4,000 or more for open-ended prompts**. Below that the budget runs out mid-thought and no answer is produced at all — not a truncated one, an empty one. This is the single most common way a reasoning model appears broken when it isn't, and it applies to GLM 4.6V equally. [`troubleshooting.md`](troubleshooting.md) covers how that surfaces.
+Set the response limit to **4,000 minimum, and higher for open-ended prompts**. Below that the budget runs out mid-thought and no answer is produced at all — not a truncated one, an empty one. Budget by whether the model reasons rather than by how the prompt looks: it returned empty at 4,000 on a question with a one-line answer. This is the single most common way a reasoning model appears broken when it isn't, and it applies to GLM 4.6V equally. [`troubleshooting.md`](troubleshooting.md) covers how that surfaces.
+
+It's also the least predictable model here on repeat. At temperature 0 and a fixed seed the three non-reasoning models returned byte-identical answers across runs; this one ranged from 12 seconds to 3 minutes on identical input, and aborted once in the MLX engine. Worth knowing before building anything that assumes repeatability.
 
 Its 32K context is the shortest of the three long-context models here, which matters for retrieval-heavy work where documents compete with the conversation for room.
 
@@ -60,13 +64,15 @@ At 30.3 tok/s it sits mid-pack, and at 7.09 GB it's the largest here. On 16 GB i
 
 **It is not automatically the right choice for images.** On straightforward extraction — reading a table off a screenshot — Ministral matched it exactly while processing the image 2.5× faster and decoding 1.8× faster on under half the memory. Reach for GLM when the visual question needs reasoning rather than transcription, and accept the latency.
 
-Two rough edges worth knowing. It needs the same generous token budget as any reasoning model, or it returns nothing. And it wraps its final answer in `<|begin_of_box|>` markers that leak into the response text, which render as literal garbage in a chat interface.
+Three rough edges worth knowing. It needs the same generous token budget as any reasoning model, or it returns nothing. It wraps its final answer in `<|begin_of_box|>` markers that leak into the response text, which render as literal garbage in a chat interface. And its reasoning sometimes arrives in the response body rather than a separate thinking block — the answer is correct, preceded by several sentences of the model talking itself through the problem. Both are the model's output, not a rendering fault; [`troubleshooting.md`](troubleshooting.md) covers what can and can't be done about it.
 
 ### Gemma 2 9B — the short-context outlier
 
 The slowest at 20.4 tok/s, and slower than its size alone explains — it sustains noticeably less throughput per gigabyte than the other GGUF model here, for reasons [`benchmarks/`](benchmarks/) treats as an open question rather than a settled one.
 
 **Its 8K context is a hard ceiling**, a property of the model rather than a memory compromise. That's the constraint that decides most cases: 8K fills quickly once documents are retrieved into it, and in search-augmented chat it generated correct queries, retrieved 27 results, and then had no room left to synthesise them.
+
+The ceiling is the whole story, and it cuts both ways. Given retrieved text that fits — a few hundred tokens rather than 27 pages — it answered exactly and repeatably, matching models with eight times the window ([`web-search/`](web-search/)). Keep what reaches it small and it's a capable reader.
 
 It's a different model family with different training, which is a real reason to reach for it on a short prompt where you want an independent take. Just don't plan a long conversation or a retrieval-heavy one around it.
 
