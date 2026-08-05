@@ -98,7 +98,7 @@ The obvious fix is a more explicit prompt. It fails:
 
 ![The same model citing sources and then answering from training data instead](img/synthesis-limitation.png)
 
-**This is a capability limit, not a configuration problem.** Preferring training data over retrieved context is a known weakness of small quantised models, and no prompt or setting closes the gap. Applications like this were designed against models an order of magnitude larger.
+**This is Vane's pipeline, not a limit of the models.** Vane exposes no control over how many results reach the model and no cap on what a query returns, so a small-context model gets everything at once and a large-context one gets 27 pages of varying quality. Given retrieved text directly, every model in this stack extracts specific detail from it reliably — see [`../web-search/`](../web-search/), where the same question is put to four models against fixed context.
 
 Resources weren't the constraint — 43% system memory free, the container VM under 1 GB of its allocation, search returning in under three seconds. The failure was the model, measured with everything else healthy.
 
@@ -107,6 +107,8 @@ Resources weren't the constraint — 43% system memory free, the container VM un
 Use the largest-context reasoning model you can fit, and expect to read the sources yourself. Vane is genuinely useful as **a search tool with an LLM-generated summary layer** — the retrieval works, the sources are real and relevant, the query generation is good. Treat the answer as a starting point and the citations as the product.
 
 For contrast, [Open WebUI's document retrieval](../open-webui/) works well on the same hardware. The difference is corpus size: a handful of documents you uploaded are small and relevant by construction, where 27 web results across three queries is far more material to weigh. Retrieval over a small trusted corpus is a much easier task than open-web synthesis.
+
+[Open WebUI's web search](../web-search/) sits between the two — open web, but with the result count and the retrieval mode exposed as settings. Capped at three results per query it answers this class of question correctly on the same models; at nine it fails the same way Vane does.
 
 ---
 
