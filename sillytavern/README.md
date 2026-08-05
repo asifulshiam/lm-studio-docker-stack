@@ -95,7 +95,7 @@ Two details worth knowing.
 
 The default response length is **300 tokens**, and that is not enough for a reasoning model. The thinking phase consumes the same allowance as the answer, so the budget runs out mid-thought and **no answer is ever produced**. The UI shows a "Thought for N seconds" block and nothing beneath it, which looks like a broken connection rather than a truncated response.
 
-Raise the response length to **2,500 or more** in the sliders panel (first toolbar icon). Measured against the API, a reasoning model needed 2,150 tokens for a multi-step word problem and over 4,000 for an open-ended question — so 2,000 clears some prompts and not others. Use 4,000 if the answers are involved; see [`../benchmarks/`](../benchmarks/) for the measurements.
+Raise the response length to **4,000 or more** in the sliders panel (first toolbar icon). Measured against the API, a reasoning model needed 2,150 tokens for a multi-step word problem and over 4,000 for an open-ended one — and a closed-form question with a one-line answer has consumed a full 4,000 elsewhere in this stack — so budget by whether the model reasons, not by how short the answer looks. See [`../benchmarks/`](../benchmarks/) for the measurements.
 
 Note that this applies to more models than the obvious one. A multimodal model in this stack also reasons before answering, spending 77% of its budget doing so, and fails the same way under a tight limit.
 
