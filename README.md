@@ -15,7 +15,8 @@ flowchart LR
     end
 
     subgraph docker["Docker Desktop"]
-        OWUI["<b>Open WebUI</b><br/>:3000<br/>general chat + RAG"]
+        OWUI["<b>Open WebUI</b><br/>:3000<br/>general chat + RAG + web search"]
+        SXNG["<b>SearXNG</b><br/>:4000<br/>search provider for Open WebUI"]
         ST["<b>SillyTavern</b><br/>:8000<br/>character-driven chat"]
         subgraph vanec["Vane container — :3001"]
             VANE["<b>Vane</b><br/>search-augmented chat"]
@@ -27,11 +28,12 @@ flowchart LR
     ST -->|host.docker.internal:1234| LMS
     VANE -->|host.docker.internal:1234| LMS
     VANE --> SEARX
+    OWUI -->|host.docker.internal:4000| SXNG
 ```
 
 All three UIs point at the same API, so switching the loaded model in LM Studio changes what every interface serves. Models do not swap automatically — loading a second one leaves the first resident, and memory is reclaimed by an idle timeout rather than by eviction. See [`lm-studio/`](lm-studio/).
 
-SearXNG runs *inside* the Vane container rather than beside it. Vane's image starts its own instance on an internal port and points at it by default, so the search backend needs no separate service.
+Two SearXNG instances appear, and they are deliberately separate. Vane's runs *inside* its container — the image starts its own on an internal port and points at it by default, so Vane's search backend needs no separate service. The standalone one on `:4000` exists for Open WebUI's built-in web search, which has no bundled backend of its own; it's optional, and [`web-search/`](web-search/) covers when it earns its place over the zero-config provider.
 
 <details>
 <summary><b>Why a separate model server instead of one all-in-one app?</b></summary>
@@ -81,7 +83,7 @@ Every figure above is reproducible with one command. On-disk sizes come from `lm
 
 † LM Studio rates its estimates for MLX models `LOW` confidence, and those figures don't change with the context length requested — the KV cache isn't being modelled. Read them as weights-plus-overhead rather than a working set. GGUF estimates do scale with context, which is what makes the 8K comparison meaningful for the other two rows.
 
-**Two of these reason before answering, and only one says so.** GLM 4.6V spent 77% of its response budget thinking on a chart question. Both it and DeepSeek R1 return an *empty* answer rather than a truncated one when the response limit is too low — budget 2,500 tokens minimum for either.
+**Two of these reason before answering, and only one says so.** GLM 4.6V spent 77% of its response budget thinking on a chart question. Both it and DeepSeek R1 return an *empty* answer rather than a truncated one when the response limit is too low — budget 4,000 tokens minimum for either, even on questions whose answers are short. The thinking phase, not the answer, is what consumes the allowance.
 
 **Memory is governed by context length, not parameter count.** At a matched 8K context the four models order exactly by size, with no shortcut hiding in the formats. The same 3B model estimates 3.40 GiB at 8K and 7.05 GiB at 64K — doubling from context alone. Cutting context frees more memory than switching to a smaller model usually does.
 
@@ -120,10 +122,11 @@ Docker Desktop provides `host.docker.internal` on macOS without configuration. E
 
 | Path | What's in it |
 |------|--------------|
-| [`lm-studio/`](lm-studio/) | Install, JIT model management, API server configuration |
+| [`lm-studio/`](lm-studio/) | Install, JIT model management, server and context configuration |
 | [`open-webui/`](open-webui/) | General-purpose chat with RAG — the default choice |
 | [`sillytavern/`](sillytavern/) | Character cards, personas, long-form roleplay |
-| [`perplexica/`](perplexica/) | Search-augmented answers, and where local models struggle |
+| [`perplexica/`](perplexica/) | Search-augmented answers through a purpose-built UI |
+| [`web-search/`](web-search/) | Open WebUI's built-in search, and what actually decides the answer |
 | [`benchmarks/`](benchmarks/) | Measured tokens/sec, and how to reproduce the numbers |
 | [`model-selection-guide.md`](model-selection-guide.md) | Which model for which job, and why |
 | [`troubleshooting.md`](troubleshooting.md) | Networking, ports, load failures, cold-start latency |
