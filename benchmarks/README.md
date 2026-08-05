@@ -75,7 +75,7 @@ The open-ended question is a casual request for advice about laptop memory. Deep
 
 **This is why a default response limit produces no answer at all.** A 300-token cap — the default in at least one UI in this stack — is roughly a seventh of what this model needs for a simple question. The budget is exhausted mid-thought, and what arrives is an empty response rather than a truncated one. See [`../sillytavern/`](../sillytavern/) for how that surfaces in practice.
 
-Budget at least **2,500 tokens** for a reasoning model on short questions, and **4,000 or more** if the answer might be involved.
+Budget at least **4,000 tokens** for a reasoning model, and more if the answer might be involved. The floor is set by the thinking phase rather than the visible answer — a closed-form question with a one-line answer consumed a full 4,000-token budget in a separate run ([`../web-search/`](../web-search/)) — so budget by whether the model reasons, not by how short the answer looks.
 
 ---
 
