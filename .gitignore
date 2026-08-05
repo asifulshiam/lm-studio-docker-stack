@@ -12,6 +12,8 @@ sillytavern-data/
 .env.*
 !.env.example
 config.toml
+web-search/searxng/settings.yml
+web-search/searxng/settings.yml.new
 *.key
 *.pem
 secrets.yml
