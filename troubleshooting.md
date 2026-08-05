@@ -58,7 +58,7 @@ See [`lm-studio/server-config.md`](lm-studio/server-config.md) for the bind addr
 
 ## Port conflicts
 
-Four ports are in play. Every one is an environment variable with a default, so a conflict never means editing YAML.
+Five ports are in play. Every one is an environment variable with a default, so a conflict never means editing YAML.
 
 | Service | Default host port | Variable |
 |---------|-------------------|----------|
@@ -66,6 +66,7 @@ Four ports are in play. Every one is an environment variable with a default, so 
 | Open WebUI | `3000` | `OPEN_WEBUI_PORT` |
 | Vane | `3001` | `VANE_PORT` |
 | SillyTavern | `8000` | `SILLYTAVERN_PORT` |
+| SearXNG (web search) | `4000` | `SEARXNG_PORT` |
 
 Find the occupant, then move your service:
 
@@ -98,7 +99,7 @@ Reasoning models spend their token allowance on the reasoning phase, and the vis
 
 An open-ended question about laptop memory consumed more than 4,095 tokens and had not finished. Against a 300-token default — which at least one interface here ships with — the budget is exhausted before the answer begins, every time.
 
-**Budget 2,500 tokens minimum for a reasoning model, 4,000 or more for anything open-ended.** Non-reasoning models don't need this, which is why it catches people out: the same setting works fine until the model changes.
+**Budget 4,000 tokens minimum for a reasoning model, and more for anything open-ended.** Budget by whether the model reasons, not by how the prompt looks — a reasoning model here returned empty at 4,000 tokens on a question whose answer was one line, after two minutes of thinking. Non-reasoning models don't need any of this, which is why it catches people out: the same setting works fine until the model changes.
 
 Confirm what a model actually spent by asking the API directly — `usage.completion_tokens_details.reasoning_tokens` in a non-streamed response separates thinking from answer:
 
@@ -182,7 +183,9 @@ Three things that look like faults and aren't. Each is covered where it belongs:
 
 **SillyTavern returns 403 to everything, then refuses to start.** Its default IP whitelist can't accommodate requests arriving through Docker's NAT, and disabling the whitelist without authentication makes it exit rather than run exposed. Both are handled by the Compose file here, and credentials are mandatory by design. See [`sillytavern/`](sillytavern/).
 
-**Vane retrieves good sources and then answers from training data.** A model capability limit on 16 GB rather than a configuration problem, documented with the evidence in [`perplexica/`](perplexica/).
+**Vane retrieves good sources and then answers from training data.** Its pipeline exposes no control over how much retrieved material reaches the model, which is the variable that decides the outcome — documented with the evidence in [`perplexica/`](perplexica/), and with the controlled comparison in [`web-search/`](web-search/).
+
+**A search-augmented answer is confidently wrong, or claims no information.** Almost always the amount retrieved rather than the model. Cap results before changing anything else; [`web-search/`](web-search/) has the settings that matter and what each one does.
 
 ### Starting one service without its dependencies
 
@@ -199,6 +202,20 @@ Naming a service alone does **not** skip `depends_on` — Compose still starts w
 Some models wrap their final answer in special tokens that are meant to be internal and instead arrive in the response body — `<|begin_of_box|>` and `<|end_of_box|>` around the answer, for instance. Chat interfaces render them literally, so the output looks corrupted.
 
 Nothing in the stack is misconfigured when this happens; the tokens are in the model's output. There's no setting that removes them. If it matters for your use, strip them client-side or pick a model that doesn't emit them — not every model here does.
+
+---
+
+## An MLX model crashes mid-generation
+
+A model in MLX format aborts partway through a response with a backend scheduler traceback rather than returning anything:
+
+```
+ValueError: Slice indices must be 32-bit integers
+mlx_engine/model_kit/batched_model_kit.py, line 410, in _generate
+token_logprob = r.logprobs[r.token].item()
+```
+
+This is inside the MLX engine, not the stack. It appeared once in roughly forty generations on the same model and prompt that otherwise completed normally, so it reads as intermittent rather than deterministic. Retrying the request is the practical response; the GGUF build of an equivalent model is the fallback if it recurs. Nothing in the container layer is involved — the request never reached a container.
 
 ---
 
