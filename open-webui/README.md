@@ -119,6 +119,14 @@ Standalone vector databases like Chroma or Qdrant solve problems this doesn't ha
 
 </details>
 
+### Web search
+
+Retrieval's other half: instead of answering from documents you uploaded, the model generates search queries, fetches live results, and answers from those. Built in — no plugin, no API key, and with the zero-config provider, no extra container.
+
+It gets its own section, because which settings you change decides whether it works at all: [`../web-search/`](../web-search/) covers the providers, the four settings that matter, and measured behaviour across every model in this stack. The short version: cap the result count, and treat it as a correctness setting rather than a throughput one.
+
+The context dynamic below applies to web results doubly — fetched pages are far larger than document chunks, and they compete for the same window.
+
 ### Chunking and retrieval depth
 
 Two settings govern most of the quality:
